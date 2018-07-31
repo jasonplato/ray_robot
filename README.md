@@ -1,6 +1,44 @@
 # ray_robot
 python + V_REP
-
+这是一个完整的Pycharm Projects。
+* 代码文件
+    ~~~
+    action_selection.py
+    agent.py
+    example.py
+    exp.py
+    learning_process.py
+    q_learning.py
+    rl_vrep.py
+    rlrobot.py
+    robot.py
+    task.py
+    test.py
+    (DQN.PY)    #只是学习DQN的一个小demo,目前和本项目无关，以后会在这个基础上搭建适用于本项目的DQN
+    ~~~
+* V-REP中的场景文件
+    ~~~
+    car_test.ttt    #目前主要是在这个场景中进行训练和测试
+    python_vrep_obstacle_avoid.ttt
+    ~~~
+* V-REP开发环境文件
+    ~~~
+    这些文件必须要包含在 import vrep 的项目文件夹中
+    remoteApi.so
+    simpleTest.py   #实际上没有影响
+    vrep.py
+    vrepConst.py
+    vrep_python.py
+    ~~~
+* 如何训练
+    ~~~
+    在V-REP中打开场景并点击开始模拟后,运行 example.py
+    训练的参数可以在exp.py中更改 
+    ~~~
+* 如何测试
+    ~~~
+    在V-REP中打开场景并点击开始模拟后,运行 test.py
+    ~~~
 ## VERSION_1:
 ### 做法
 只能通过最naive的方法控制小车避障，即读取小车身上的传感器距离数据(z轴)，若该距离小于一个阈值，则转向，具体转向的角度与该传感器相对于小车车身的角度有关。越是靠两侧的传感器检测到距离太近，转向的角度越大。此版本参照了V-REP Pioneer_3dx 小车模型的Lua脚本。
