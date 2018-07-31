@@ -1,5 +1,5 @@
 # ray_robot
-python + V_REP
+python + V_REP<br>
 这是一个完整的Pycharm Projects。
 * 代码文件
     ~~~
@@ -33,7 +33,8 @@ python + V_REP
 * 如何训练
     ~~~
     在V-REP中打开场景并点击开始模拟后,运行 example.py
-    训练的参数可以在exp.py中更改 
+    训练的参数可以在 exp.py 中更改
+    训练结果会保存在 policy_results.txt 中
     ~~~
 * 如何测试
     ~~~
