@@ -104,4 +104,11 @@ python + V_REP<br>
 * 搭建网络架构
     ~~~
     网络分为：evaluate_Network 和 target_Network
+    
+    ####evaluate_Network:
+    两层结构，隐藏层单元数 10
+    最后得到 q_eval，即为Q估计值（时刻根据当前环境进行更新的）
+    ####target_Network:
+    两层结构，隐藏层单元数 10 
+    最后得到 q_next，即为下一步的Q值
     ~~~
