@@ -32,17 +32,17 @@ python + V_REP<br>
     ~~~
 * 如何训练
     ~~~
-    Nature Q-learning:<br> 
+    Nature Q-learning: 
     在V-REP中打开场景并点击开始模拟后,运行 example.py
     训练的参数可以在 exp.py 中更改
     训练结果会保存在 policy_results.txt 中
     
-    DQN:<br>
+    DQN:
     直接运行DQN.py就行
     ~~~
 * 如何测试
     ~~~
-    Nature Q-learning:<br>
+    Nature Q-learning:
     在V-REP中打开场景并点击开始模拟后,运行 test.py
     ~~~
 ## VERSION_1:
