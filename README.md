@@ -14,11 +14,12 @@ python + V_REP<br>
     robot.py
     task.py
     test.py
-    (DQN.PY)    #只是学习DQN的一个小demo,目前和本项目无关，以后会在这个基础上搭建适用于本项目的DQN
+    DQN.py    
     ~~~
 * V-REP中的场景文件
     ~~~  
-    python_vrep_obstacle_avoid.ttt  #目前主要是在这个场景中进行训练和测试
+    demo.ttt    #目前主要是在这个场景中进行训练和测试
+    python_vrep_obstacle_avoid.ttt  
     ~~~
 * V-REP开发环境文件
     ~~~
@@ -31,12 +32,17 @@ python + V_REP<br>
     ~~~
 * 如何训练
     ~~~
+    Nature Q-learning:<br> 
     在V-REP中打开场景并点击开始模拟后,运行 example.py
     训练的参数可以在 exp.py 中更改
     训练结果会保存在 policy_results.txt 中
+    
+    DQN:<br>
+    直接运行DQN.py就行
     ~~~
 * 如何测试
     ~~~
+    Nature Q-learning:<br>
     在V-REP中打开场景并点击开始模拟后,运行 test.py
     ~~~
 ## VERSION_1:
@@ -78,8 +84,8 @@ python + V_REP<br>
     ~~~
 * 训练
     ~~~
-    STEPS = 5000
-    将学到的策略保存起来以用于测试。
+    STEPS = 15000
+    将学到的策略保存在 policy_results.txt 以用于测试。
     ~~~
 ### 问题
 可能是由于训练的步数还不够多？小车在测试时还是显得很笨，能畅行通过的地方还在犹豫，
@@ -95,4 +101,7 @@ python + V_REP<br>
 ### 做法
 加入神经网络，即使用DQN方法。
 ### 进度
-正在进行中
+* 搭建网络架构
+    ~~~
+    网络分为：evaluate_Network 和 target_Network
+    ~~~
