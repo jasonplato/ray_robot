@@ -13,7 +13,7 @@ time.sleep(0.5)
 agent.setup()
 #robot.setup(["MOBILE_BASE", "DISTANCE_SENSOR"],[])
 time.sleep(0.5)
-policy = np.zeros((65536,1),dtype=np.int)
+policy = np.zeros((16384,1),dtype=np.int)
 
 with open("policy_results.txt",'r') as f:
     for line in f:
