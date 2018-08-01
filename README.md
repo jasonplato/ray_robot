@@ -17,9 +17,8 @@ python + V_REP<br>
     (DQN.PY)    #只是学习DQN的一个小demo,目前和本项目无关，以后会在这个基础上搭建适用于本项目的DQN
     ~~~
 * V-REP中的场景文件
-    ~~~
-    car_test.ttt    #目前主要是在这个场景中进行训练和测试
-    python_vrep_obstacle_avoid.ttt
+    ~~~  
+    python_vrep_obstacle_avoid.ttt  #目前主要是在这个场景中进行训练和测试
     ~~~
 * V-REP开发环境文件
     ~~~
