@@ -99,16 +99,21 @@ python + V_REP<br>
    
 ## VERSION_3：
 ### 做法
-加入神经网络，即使用DQN方法。
+加入神经网络，即使用DQN方法。加入了尾部传感器（因为使用了NN所以不用太在意过多的状态可能会带来的效率问题）。
 ### 进度
 * 搭建网络架构
     ~~~
     网络分为：evaluate_Network 和 target_Network
     
-    ####evaluate_Network:
+    #### evaluate_Network:
     两层结构，隐藏层单元数 10
     最后得到 q_eval，即为Q估计值（时刻根据当前环境进行更新的）
-    ####target_Network:
+    #### target_Network:
     两层结构，隐藏层单元数 10 
     最后得到 q_next，即为下一步的Q值
+    ~~~
+ * 网络输入：
+    ~~~
+    1.每隔0.5秒取一帧作为输入
+    2.取连续5帧，取mean值作为输入
     ~~~
