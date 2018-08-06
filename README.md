@@ -117,4 +117,5 @@ python + V_REP<br>
     1.每隔0.5秒取一帧作为输入
     2.取连续5帧，取mean值作为输入(已测试过，效果比上一种稍强)
     3.取连续5帧，输入到LSTM网络中提取时序信息，输出最后step作为eval_network或target_network的输入，后续步骤不变
+      （还有bug，正在调）
     ~~~
