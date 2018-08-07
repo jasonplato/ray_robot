@@ -88,7 +88,7 @@ class DQN:
                 self.q_next = tf.matmul(l1,w2)+b2
 
 
-    def build_rnn_net(self):
+    def build_rnn_net(self):    #此处搭建的LSTM网络用于提取连续5帧的时序信息，输出最后一个step的内容作为后续的输入
         self.rnn_in = tf.placeholder(dtype=tf.float32, shape = [None, n_steps, self.n_features])
         #self.q_target = tf.placeholder(dtype=tf.float32, shape = [None, self.n_actions])
 
