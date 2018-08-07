@@ -1,12 +1,27 @@
 import numpy  as np
 import tensorflow as tf
 
-class DQN:
-    def __init__(self,n_actions,n_features,learning_rate=0.01,reward_decay = 0.9,egreedy = 0.9,
-                 replace_target_iter = 300,memorize_size = 500,batch_size = 32,egreedy_increment = None):
+training_iter = 100000
+batch_size = 1
 
+n_steps = 5
+n_units = 128
+n_outputs = 10
+
+class DQN:
+    def __init__(self,n_actions,n_features,learning_rate=0.001,reward_decay = 0.9,egreedy = 0.9,
+                 replace_target_iter = 300,memorize_size = 500,batch_size = 256,egreedy_increment = None):
         self.n_actions = n_actions
         self.n_features = n_features
+        self.weights = {
+            'in': tf.Variable(tf.random_normal([self.n_features, n_units])),
+            'out': tf.Variable(tf.random_normal([n_units, n_outputs]))
+        }
+        self.biases = {
+        'in': tf.Variable(tf.constant(0.1, shape=[n_units, ])),
+        'out': tf.Variable(tf.constant(0.1, shape=[n_outputs, ]))
+        }
+
         self.lr = learning_rate
         self.gamma = reward_decay
         self.epsilon_max = egreedy
@@ -18,6 +33,7 @@ class DQN:
         self.learn_step = 0
         self.memory = np.zeros((self.memory_size,n_features*2 + 2))
         self.build_net()
+        self.build_rnn_net()
         t_params = tf.get_collection('target_params')
         e_params = tf.get_collection('eval_params')
 
@@ -72,17 +88,34 @@ class DQN:
                 self.q_next = tf.matmul(l1,w2)+b2
 
 
+    def build_rnn_net(self):
+        self.rnn_in = tf.placeholder(dtype=tf.float32, shape = [None, n_steps, self.n_features])
+        #self.q_target = tf.placeholder(dtype=tf.float32, shape = [None, self.n_actions])
+
+        X = tf.reshape(self.rnn_in,[-1,self.n_features])
+        X_in = tf.matmul(X,self.weights['in'])+self.biases['in']
+        X_in = tf.reshape(X_in,[-1,n_steps,n_units])
+
+        cell = tf.nn.rnn_cell.BasicLSTMCell(n_units,forget_bias= 1.0,state_is_tuple=True)
+
+        init_state = cell.zero_state(batch_size,dtype=tf.float32)
+
+        outputs,final_state = tf.nn.dynamic_rnn(cell,X_in,initial_state = init_state,time_major = False)
+        outputs = tf.unstack(tf.transpose(outputs,[1,0,2]))
+        self.rnn_out = tf.matmul(outputs[-1],self.weights['out'])+self.biases['out']
+
     def store(self,s,a,r,s_):
         if not hasattr(self,'memory_counter'):
             self.memory_counter = 0
-
-        contents = np.hstack((s,[a,r],s_))
+        term = np.array((a,r))
+        term = term[np.newaxis,:]
+        contents = np.hstack((s,term,s_))
         index = self.memory_counter % self.memory_size
         self.memory[index,:]=contents
         self.memory_counter += 1
 
     def choose_action(self,observation):
-        observation = observation[np.newaxis,:]
+        #observation = observation[np.newaxis,:]
 
         if np.random.uniform() < self.epsilon:
             actions_value = self.sess.run(self.q_eval,feed_dict = {self.s:observation})
@@ -98,7 +131,7 @@ class DQN:
         if self.memory_counter > self.memory_size:
             sample = np.random.choice(self.memory_size,size= self.batch_size,replace= False)
         else:
-            sample = np.random.choice(self.memory_counter,size= self.batch_size,replace= False)
+            sample = np.random.choice(self.memory_counter,size= self.batch_size,replace= True)
 
         batch_memory = self.memory[sample,:]
 
@@ -136,19 +169,35 @@ def run_DQN():
     time.sleep(0.5)
     step = 0
     for epi in range(30000):
-        observation = agent.observestate()
-        observation = agent.unwrap_state(observation)
-
+        print('step:',step)
+        observation = np.empty(shape= (5,10))
+        observation_ = np.empty(shape = (5,10))
+        for i in range(5):
+            observation_i = agent.observestate()
+            observation_i = agent.unwrap_state(observation_i)
+            observation[i] = np.array(observation_i)
+        observation = observation[np.newaxis,:]
+        observation= Robot.sess.run(Robot.rnn_out,feed_dict= {Robot.rnn_in:observation})
+        #observation = np.mean(observation,axis= 0)
         action = Robot.choose_action(observation)
 
         agent.execute_action(action)
+        print('action:',action)
+        #time.sleep(0.5)
+
         r = agent.get_reward()
-        observation_ = agent.observestate()
-        observation_ = agent.unwrap_state(observation_)
+        print('reward:',r)
+        for i in range(5):
+            observation_i = agent.observestate()
+            observation_i = agent.unwrap_state(observation_i)
+            observation_[i] = np.array(observation_i)
+        #observation_ = np.mean(observation_,axis= 0)
         #.........
+        observation_ = observation_[np.newaxis,:]
+        observation_= Robot.sess.run(Robot.rnn_out,feed_dict= {Robot.rnn_in:observation_})
         Robot.store(observation,action,r,observation_)
 
-        if (step >200) and (step % 5 == 0) :
+        if (step >200) and (step % 10 == 0) :
             Robot.learn()
 
         observation = observation_
@@ -157,7 +206,7 @@ def run_DQN():
     print('run over!')
 
 if __name__ =="__main__":
-    Robot = DQN(9,7,learning_rate=0.01,reward_decay=0.9,egreedy=0.9,replace_target_iter=500,
-             memorize_size=5000,egreedy_increment=0.05)
+    Robot = DQN(9,10,learning_rate=0.01,reward_decay=0.9,egreedy=0.9,replace_target_iter=200,
+             memorize_size=2000,egreedy_increment=0.05)
     run_DQN()
 
