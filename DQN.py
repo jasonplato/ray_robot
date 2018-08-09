@@ -4,7 +4,7 @@ import tensorflow as tf
 training_iter = 100000
 batch_size = 1
 
-n_steps = 5
+n_steps = 10
 n_units = 128
 n_outputs = 10
 
@@ -50,19 +50,31 @@ class DQN:
         """
         self.s = tf.placeholder(shape=[None,self.n_features],dtype= tf.float32,name = 's')
         self.q_target = tf.placeholder(shape = [None,self.n_actions],dtype = tf.float32, name = 'qtarget')
-
+        self.s_3d = tf.expand_dims(self.s,1)
+        self.s_4d = tf.expand_dims(self.s_3d,3)
         with tf.variable_scope("eval_net"):
             c_names = ['eval_params',tf.GraphKeys.GLOBAL_VARIABLES]
-            units = 10
+            units = 64
             w_initializer = tf.truncated_normal_initializer(0,1.0)
             b_initializer = tf.constant_initializer(0.1)
 
-            with tf.variable_scope("layer1"):
-                w1 = tf.get_variable(name= 'w1',shape = [self.n_features,units],initializer = w_initializer,collections= c_names)
-                b1 = tf.get_variable(name= 'b1',shape = [1,units],initializer = b_initializer,collections= c_names)
-                l1 = tf.nn.relu(tf.matmul(self.s,w1)+b1)
+            with tf.variable_scope("conv_layer1"):
+                kernel = tf.get_variable(name = 'kernel1',shape = [1,2,1,1],initializer=w_initializer,collections=c_names)
+                conv_out = tf.nn.conv2d(self.s_4d,kernel,strides = [1,1,1,1],padding= "VALID")
+                conv_out = tf.squeeze(conv_out)
+                conv_out = tf.nn.relu(conv_out)
+                conv_out = tf.reshape(conv_out,shape = [-1,9])
 
-            with tf.variable_scope("layer2"):
+                #print('conv_out shape:',conv_out.shape)
+            with tf.variable_scope("fc_layer1"):
+                #fc1_in = tf.reshape(conv_out,shape=[self.batch_size,-1])
+                #dim = fc1_in.get_shape()[1].value
+                w1 = tf.get_variable(name= 'w1',shape = [9,units],initializer = w_initializer,collections= c_names)
+                #w1 = tf.Variable(tf.truncated_normal([dim, units], dtype=tf.float32, stddev=0.01), name='w1',collections=c_names)
+                b1 = tf.get_variable(name= 'b1',shape = [1,units],initializer = b_initializer,collections= c_names)
+                l1 = tf.nn.relu(tf.matmul(conv_out,w1)+b1)
+
+            with tf.variable_scope("fc_layer2"):
                 w2 = tf.get_variable(name= 'w2',shape = [units,self.n_actions],initializer = w_initializer,collections= c_names)
                 b2 = tf.get_variable(name= 'b2',shape = [1,self.n_actions],initializer = b_initializer,collections= c_names)
                 self.q_eval = tf.matmul(l1,w2)+b2
@@ -74,13 +86,23 @@ class DQN:
         build target_net
         """
         self.s_ = tf.placeholder(shape= [None,self.n_features],dtype= tf.float32,name = 's_')
+        self.s__3d = tf.expand_dims(self.s_,1)
+        self.s__4d = tf.expand_dims(self.s__3d,3)
         with tf.variable_scope('target_net'):
             c_names = ['target_params',tf.GraphKeys.GLOBAL_VARIABLES]
 
+            with tf.variable_scope("conv_layer1"):
+                kernel = tf.get_variable(name = 'kernel1',shape = [1,2,1,1],initializer=w_initializer,collections=c_names)
+                conv_out = tf.nn.conv2d(self.s__4d,kernel,strides = [1,1,1,1],padding= "VALID")
+                conv_out = tf.squeeze(conv_out)
+                conv_out = tf.nn.relu(conv_out)
+                conv_out = tf.reshape(conv_out,shape = [-1,9])
+                #print('conv_out shape:',conv_out.shape)
+
             with tf.variable_scope('layer1'):
-                w1 = tf.get_variable(shape= [self.n_features,units],initializer= w_initializer,name= 'w1',collections=c_names)
+                w1 = tf.get_variable(shape= [9,units],initializer= w_initializer,name= 'w1',collections=c_names)
                 b1 = tf.get_variable(shape= [1,units],initializer= b_initializer,name= 'b1',collections=c_names)
-                l1 = tf.nn.relu(tf.matmul(self.s_,w1)+b1)
+                l1 = tf.nn.relu(tf.matmul(conv_out,w1)+b1)
 
             with tf.variable_scope('layer2'):
                 w2 = tf.get_variable(shape= [units,self.n_actions],initializer= w_initializer,name= 'w2',collections=c_names)
@@ -88,7 +110,7 @@ class DQN:
                 self.q_next = tf.matmul(l1,w2)+b2
 
 
-    def build_rnn_net(self):    #此处搭建的LSTM网络用于提取连续5帧的时序信息，输出最后一个step的内容作为后续的输入
+    def build_rnn_net(self):
         self.rnn_in = tf.placeholder(dtype=tf.float32, shape = [None, n_steps, self.n_features])
         #self.q_target = tf.placeholder(dtype=tf.float32, shape = [None, self.n_actions])
 
@@ -110,6 +132,7 @@ class DQN:
         term = np.array((a,r))
         term = term[np.newaxis,:]
         contents = np.hstack((s,term,s_))
+        #contents = np.hstack((s,[a,r],s_))
         index = self.memory_counter % self.memory_size
         self.memory[index,:]=contents
         self.memory_counter += 1
@@ -118,7 +141,8 @@ class DQN:
         #observation = observation[np.newaxis,:]
 
         if np.random.uniform() < self.epsilon:
-            actions_value = self.sess.run(self.q_eval,feed_dict = {self.s:observation})
+            actions_value = self.sess.run([self.q_eval],feed_dict = {self.s:observation})
+            #print('conv_out:',conv_out)
             action = np.argmax(actions_value)
         else :
             action = np.random.randint(0,self.n_actions)
@@ -170,14 +194,15 @@ def run_DQN():
     step = 0
     for epi in range(30000):
         print('step:',step)
-        observation = np.empty(shape= (5,10))
-        observation_ = np.empty(shape = (5,10))
-        for i in range(5):
+        observation = np.empty(shape= (10 ,10))
+        observation_ = np.empty(shape = (10,10))
+        for i in range(10):
             observation_i = agent.observestate()
             observation_i = agent.unwrap_state(observation_i)
             observation[i] = np.array(observation_i)
         observation = observation[np.newaxis,:]
         observation= Robot.sess.run(Robot.rnn_out,feed_dict= {Robot.rnn_in:observation})
+
         #observation = np.mean(observation,axis= 0)
         action = Robot.choose_action(observation)
 
@@ -187,7 +212,7 @@ def run_DQN():
 
         r = agent.get_reward()
         print('reward:',r)
-        for i in range(5):
+        for i in range(10):
             observation_i = agent.observestate()
             observation_i = agent.unwrap_state(observation_i)
             observation_[i] = np.array(observation_i)
