@@ -125,3 +125,10 @@ python + V_REP<br>
     2.用LSTM来训练Q值或速度（尚未更改）
     3.加入几层卷积(已加入一层卷积 + 两层全连接)
     ~~~
+ 
+## VERSION_4：
+### 做法
+使用Actor-Critic:Value + Policy方法。
+参考：
+https://www.youtube.com/watch?v=0g4j2k_Ggc4 (David Silver RL courses in UCL)
+https://zhuanlan.zhihu.com/reinforce    (知乎上关于上门这门课的讲解)
