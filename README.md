@@ -128,7 +128,13 @@ python + V_REP<br>
  
 ## VERSION_4：
 ### 做法
-使用Actor-Critic:Value + Policy方法。
+使用Actor-Critic:Value + Policy方法。<br>
+Actor:conv1 + conv2 + fc1 + policy(fc)<br>
+Critic: conv1 + conv2 + fc1 + value(fc)<br>
+loss = actor_loss(包含entropy_loss) + critic_loss<br>
+多个worker并行工作（我的ubuntu虚拟机只能开2个cpu）
 参考：
 https://www.youtube.com/watch?v=0g4j2k_Ggc4 (David Silver RL courses in UCL)
 https://zhuanlan.zhihu.com/reinforce    (知乎上关于上门这门课的讲解)
+### 进度
+主体代码已基本完成，打开 vrep 环境文件后，直接运行 A3C.py 即可。还可以再改进具体代码细节。
