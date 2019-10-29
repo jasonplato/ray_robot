@@ -1,6 +1,6 @@
 # ray_robot
 python + V_REP<br>
-这是一个完整的Pycharm Projects。
+V_REP is an open-source simulation platform for robotics.
 * 代码文件
     ~~~
     action_selection.py
